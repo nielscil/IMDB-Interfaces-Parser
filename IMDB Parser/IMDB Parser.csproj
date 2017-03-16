@@ -56,6 +56,8 @@
     <Compile Include="Parsers\ActressesParser.cs" />
     <Compile Include="Parsers\BaseParser.cs" />
     <Compile Include="Parsers\IParser.cs" />
+    <Compile Include="Parsers\LocationParser.cs" />
+    <Compile Include="Parsers\MoviesParser.cs" />
     <Compile Include="Parsers\Parsers.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

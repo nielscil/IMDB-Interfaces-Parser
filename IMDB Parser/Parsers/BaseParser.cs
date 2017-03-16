@@ -13,7 +13,9 @@ namespace IMDB_Parser.Parsers
 
         public abstract string Name { get; }
 
-        protected abstract string Header { get; set; }
+        protected abstract string Header { get;}
+
+        protected abstract int SkipLinesCount { get;}
 
         protected bool EndOfFile
         {
@@ -23,13 +25,7 @@ namespace IMDB_Parser.Parsers
             }
         }        
 
-        protected virtual string FileBegin
-        {
-            get
-            {
-                return $"THE {Name.ToUpper()} LIST";
-            }
-        }
+        protected abstract string FileBegin { get; }
 
         private StringBuilder ParsedData { get; set; }
 
@@ -65,7 +61,7 @@ namespace IMDB_Parser.Parsers
                     throw new Exception("File ended before something was found, maybe you loaded the wrong file!");
                 }
 
-                SkipLines(4);
+                SkipLines(SkipLinesCount);
 
                 ClearWriteFile();
 
