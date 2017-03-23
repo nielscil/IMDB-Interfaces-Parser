@@ -11,8 +11,7 @@ namespace IMDB_Parser.Parsers
     {
 
         //private const string _regex = @"^(?'title'.*?)\s*\(((?'year'\d{4}(\/.*)?)|(.{4}(\/.*?)?))\)\s*(?'episode'\{[^\{\}]*\})?\s*((?'location'.*)??,[ ]*)?((?'city'[^,]*)?,[ ]*)?((?'state'[^,]*)?,[ ]*)?(?'country'[^,\(]*)?(?'extra'\(.*\))?$";
-        private const string _regex = @"^(?'title'.*?)\s*\(((?'year'\d{4}(\/.*)?)|(.{4}(\/.*?)?))\)\s*(?'episode'\{[^\{\}]*\})?\s*(\{\{.*\}\})?\s*(?'locationdetails'[^\t]*)\s*(\((?'extra'.*)\))?$";
-        private string[] _seperator { get; } = new string[] { ", " };
+        private const string _regex = @"^(?'title'.*?)\s*\(((?'year'\d{4}(\/.*)?)|(.{4}(\/.*?)?))\)\s*(\{(?'episodename'.*?)(\(\#?(?'episode'[^\)]*)\))?\})?\s*(\((?'videomovie'V)\))?\s*(\((?'tvmovie'TV)\))?\s*(\((?'videogame'VG)\))?\s*(\{\{.*\}\})?\s*(?'locationdetails'[^\t\r\n]*)\s*(\((?'extra'.*)\))?$";
 
         public override string Name
         {
@@ -26,7 +25,7 @@ namespace IMDB_Parser.Parsers
         {
             get
             {
-                return "Title; Year; Serie; Episode; Location; City; State; Country; Extra;";
+                return "Title; Year; Serie; Episode; EpisodeName; VideoMovie; TVMovie; VideoGame; Location; Extra;";
             }
         }
 
@@ -79,7 +78,7 @@ namespace IMDB_Parser.Parsers
 
                 if(!string.IsNullOrEmpty(locationDetails))
                 {
-                    location = $"{GetTitle(match)}; {GetYear(match)}; {IsSerie(match)}; {GetEpisode(match)}; {locationDetails}; {GetExtra(match)};";
+                    location = $"{GetTitle(match).Trim('"')}; {GetYear(match)}; {IsSerie(match)}; {GetEpisode(match)}; {GetEpisodeName(match)}; {IsVideoMovie(match)}; {IsTVMovie(match)}; {IsVideoGame(match)}; {locationDetails}; {GetExtra(match)};";
                 }
             }
             else
@@ -92,41 +91,41 @@ namespace IMDB_Parser.Parsers
 
         private string GetLocationDetails(Match match)
         {
-            string location = GetValueFromGroup(match, "locationdetails");
-            string details = null;
+            return GetValueFromGroup(match, "locationdetails");
+            //string details = null;
 
-            if(!string.IsNullOrEmpty(location))
-            {
-                string[] data = location.Split(_seperator, StringSplitOptions.None);
+            //if(!string.IsNullOrEmpty(location))
+            //{
+            //    string[] data = location.Split(_seperator, StringSplitOptions.None);
 
-                string loc = string.Empty;
-                string city = string.Empty;
-                string state = string.Empty;
-                string country = string.Empty;
+            //    string loc = string.Empty;
+            //    string city = string.Empty;
+            //    string state = string.Empty;
+            //    string country = string.Empty;
 
-                country = data[data.Length - 1];
+            //    country = data[data.Length - 1];
                 
-                if(data.Length - 2 >= 0)
-                {
-                    state = data[data.Length - 2];
-                }
+            //    if(data.Length - 2 >= 0)
+            //    {
+            //        state = data[data.Length - 2];
+            //    }
                 
-                if(data.Length - 3 >= 0)
-                {
-                    city = data[data.Length - 3];
-                }
+            //    if(data.Length - 3 >= 0)
+            //    {
+            //        city = data[data.Length - 3];
+            //    }
 
-                int index = data.Length - 4;
+            //    int index = data.Length - 4;
 
-                for(int i = 0; i <= index; i++)
-                {
-                    loc += data[i];
-                }
+            //    for(int i = 0; i <= index; i++)
+            //    {
+            //        loc += data[i];
+            //    }
 
-                details = $"{location}; {loc}; {city}; {state}; {country}";
-            }
+            //    details = $"{location}; {loc}; {city}; {state}; {country}";
+            //}
 
-            return details;
+            //return details;
         }
 
         private string GetTitle(Match match)
@@ -144,25 +143,30 @@ namespace IMDB_Parser.Parsers
             return GetValueFromGroup(match, "episode");
         }
 
-        private string GetLocation(Match match)
+        private string GetEpisodeName(Match match)
         {
-            return GetValueFromGroup(match, "location");
+            return GetValueFromGroup(match, "episodename");
         }
 
-        private string GetCity(Match match)
-        {
-            return GetValueFromGroup(match, "city");
-        }
+        //private string GetLocation(Match match)
+        //{
+        //    return GetValueFromGroup(match, "location");
+        //}
 
-        private string GetState(Match match)
-        {
-            return GetValueFromGroup(match, "state");
-        }
+        //private string GetCity(Match match)
+        //{
+        //    return GetValueFromGroup(match, "city");
+        //}
 
-        private string GetCountry(Match match)
-        {
-            return GetValueFromGroup(match, "country");
-        }
+        //private string GetState(Match match)
+        //{
+        //    return GetValueFromGroup(match, "state");
+        //}
+
+        //private string GetCountry(Match match)
+        //{
+        //    return GetValueFromGroup(match, "country");
+        //}
 
         private string GetExtra(Match match)
         {
@@ -181,6 +185,21 @@ namespace IMDB_Parser.Parsers
             }
 
             return value.ToString();
+        }
+
+        private string IsVideoMovie(Match match)
+        {
+            return (GetValueFromGroup(match, "videomovie") == "V").ToString();
+        }
+
+        private string IsTVMovie(Match match)
+        {
+            return (GetValueFromGroup(match, "tvmovie") == "TV").ToString();
+        }
+
+        private string IsVideoGame(Match match)
+        {
+            return (GetValueFromGroup(match, "videogame") == "VG").ToString();
         }
 
     }

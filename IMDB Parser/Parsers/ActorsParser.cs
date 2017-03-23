@@ -11,7 +11,7 @@ namespace IMDB_Parser.Parsers
     public class ActorsParser : BaseParser
     {
         private const string _regexActor = @"^(?'nickname'\'.*\'[ ]?)?((?'surname'[^,\n]*), )?(?'name'.*?)[\t]{1,2}(?'title'.*)$";
-        private const string _regexTitle = @"^(?'title'.*?)\s*\(((?'year'\d{4}(\/.*)?)|(.{4}(\/.*?)?))\)\s*(?'episode'\{[^\{\}]*\})?\s*(\((?'videomovie'V)\))?\s*(\((?'tvmovie'TV)\))?\s*(\((?'videogame'VG)\))?\s*(?'character1'[^{}\[\]\(\)]*)\s*(\{{2}.*\}{2})?\s*(?'extra'\(.*\)[.]?)?\s*(\[(?'character'.*)\])?\s*(\<(?'billingposition'.*)\>)?$";
+        private const string _regexTitle = @"^(?'title'.*?)\s*\(((?'year'\d{4}(\/.*)?)|(.{4}(\/.*?)?))\)\s*(\{(?'episodename'.*?)(\(\#?(?'episode'[^\)]*)\))?\})?\s*(\((?'videomovie'V)\))?\s*(\((?'tvmovie'TV)\))?\s*(\((?'videogame'VG)\))?\s*(?'character1'[^{}\[\]\(\)\<\>]*)\s*(\{{2}.*\}{2})?\s*(?'extra'\(.*\)[.]?)?\s*(\[(?'character'.*)\])?\s*(\<(?'billingposition'.*)\>)?$";
         private char[] _seperator { get; } = { '\t' };
 
         public override string Name
@@ -26,7 +26,7 @@ namespace IMDB_Parser.Parsers
         {
             get
             {
-                return "Name; Surname; Nickname; Title; Year; Character; Character Extras; BillingPosition; Serie; Episode; VideoMovie; TVMovie; VideoGame;";
+                return "Name; Surname; Nickname; Title; Year; Character; Character Extras; BillingPosition; Serie; Episode; EpisodeName; VideoMovie; TVMovie; VideoGame;";
             }
         }
 
@@ -110,7 +110,7 @@ namespace IMDB_Parser.Parsers
 
             if (match.Success)
             {
-                title = $" {GetTitleTitle(match)}; {GetTitleYear(match)}; {GetTitleCharacter(match)}; {GetTitleCharacterExtras(match)}; {GetTitleBillingPosition(match)}; {IsSerie(match)}; {GetTitleEpisode(match)}; {IsVideoMovie(match)}; {IsTVMovie(match)}; {IsVideoMovie(match)};";
+                title = $" {GetTitleTitle(match).Trim('"')}; {GetTitleYear(match)}; {GetTitleCharacter(match)}; {GetTitleCharacterExtras(match)}; {GetTitleBillingPosition(match)}; {IsSerie(match)}; {GetTitleEpisode(match)}; {GetTitleEpisodeName(match)}; {IsVideoMovie(match)}; {IsTVMovie(match)}; {IsVideoMovie(match)};";
             }
             else
             {
@@ -185,6 +185,11 @@ namespace IMDB_Parser.Parsers
         private string GetTitleEpisode(Match match)
         {
             return GetValueFromGroup(match, "episode");
+        }
+
+        private string GetTitleEpisodeName(Match match)
+        {
+            return GetValueFromGroup(match, "episodename");
         }
 
         private string IsSerie(Match match)

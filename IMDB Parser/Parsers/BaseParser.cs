@@ -27,6 +27,14 @@ namespace IMDB_Parser.Parsers
 
         protected abstract string FileBegin { get; }
 
+        protected virtual int CountBeforeWrite
+        {
+            get
+            {
+                return 400000;
+            }
+        }
+
         private StringBuilder ParsedData { get; set; }
 
         private StreamReader _stream;
@@ -93,6 +101,8 @@ namespace IMDB_Parser.Parsers
             }
 
             ParsedData.Clear();
+            ParsedData = new StringBuilder();
+
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }
@@ -131,7 +141,7 @@ namespace IMDB_Parser.Parsers
             return line;
         }
 
-        private void SkipLines(int lineCount)
+        public void SkipLines(int lineCount)
         {
             _lineCount += lineCount;
             for (int i = 0; i < lineCount; i++)
@@ -142,13 +152,17 @@ namespace IMDB_Parser.Parsers
 
         protected void WriteLine(string line)
         {
-
             ParsedData.AppendLine(line);
 
-            if(_lineCount % 400000 == 0)
+            if(!IsBelowMemoryValue())
             {
                 WriteFile();
             }
+        }
+
+        private bool IsBelowMemoryValue()
+        {
+            return ParsedData.Length * 2 < 209715200;
         }
 
         public override string ToString()

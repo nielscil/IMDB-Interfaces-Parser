@@ -7,16 +7,24 @@ using System.Threading.Tasks;
 
 namespace IMDB_Parser.Parsers
 {
-    public class MoviesParser : BaseParser
+    class KeywordsParser : BaseParser
     {
 
-        private const string _regex = @"^(?'title'.*?)\s*\(((?'year'\d{4}(\/.*)?)|(.{4}(\/.*?)?))\)\s*(\{(?'episodename'.*?)(\(\#?(?'episode'[^\)]*)\))?\})?\s*(\((?'videomovie'V)\))?\s*(\((?'tvmovie'TV)\))?\s*(\((?'videogame'VG)\))?\s*(\{{2}.*\}{2})?\s*(?'extra'\(.*\)[.]?)?\s*((?'period'\d{4}|.{4})(-(?'endperiod'\d{4}|.{4}))?)$";
+        private string _regex = @"^(?'title'.*?)\s*\(((?'year'\d{4}(\/.*)?)|(.{4}(\/.*?)?))\)\s*(\{(?'episodename'.*?)(\(\#?(?'episode'[^\)]*)\))?\})?\s*(\((?'videomovie'V)\))?\s*(\((?'tvmovie'TV)\))?\s*(\((?'videogame'VG)\))?\s*(\{\{.*\}\})?\s*(?'keyword'[^\t\r\n]*)$"; 
 
         public override string Name
         {
             get
             {
-                return "Movies";
+                return "Keywords";
+            }
+        }
+
+        protected override string FileBegin
+        {
+            get
+            {
+                return $"8: THE {Name.ToUpper()} LIST";
             }
         }
 
@@ -24,7 +32,7 @@ namespace IMDB_Parser.Parsers
         {
             get
             {
-                return "Title; Year; PeriodBegin; PeriodEnd; Serie; Episode; EpisodeName; VideoMovie; TVMovie; VideoGame; Extra;";
+                return "Title; Year; Serie; Episode; EpisodeName; VideoMovie; TVMovie; VideoGame; Keyword;";
             }
         }
 
@@ -36,17 +44,9 @@ namespace IMDB_Parser.Parsers
             }
         }
 
-        protected override string FileBegin
-        {
-            get
-            {
-                return $"{Name.ToUpper()} LIST";
-            }
-        }
-
         protected override void Parse()
         {
-            string line, movie;
+            string line, keyword;
             while (!EndOfFile)
             {
                 line = ReadLine();
@@ -56,31 +56,31 @@ namespace IMDB_Parser.Parsers
                     break;
                 }
 
-                movie = GetMovie(line);
+                keyword = GetKeyword(line);
 
-                if (movie != null)
+                if (keyword != null)
                 {
-                    WriteLine(movie);
+                    WriteLine(keyword);
                 }
             }
         }
 
-        private string GetMovie(string line)
+        private string GetKeyword(string line)
         {
             Match match = RegexMatch(line, _regex);
 
-            string movie = null;
+            string keyword = null;
 
             if (match.Success)
             {
-                movie = $"{GetTitle(match).Trim('"')}; {GetYear(match)}; {GetPeriodBegin(match)}; {GetPeriodEnd(match)}; {IsSerie(match)}; {GetEpisode(match)}; {GetEpisodeName(match)}; {IsVideoMovie(match)}; {IsTVMovie(match)}; {IsVideoGame(match)}; {GetExtra(match)};";
+                keyword = $"{GetTitle(match).Trim('"')}; {GetYear(match)}; {IsSerie(match)}; {GetEpisode(match)}; {GetEpisodeName(match)}; {IsVideoMovie(match)}; {IsTVMovie(match)}; {IsVideoGame(match)}; {GetKeywordDetails(match)};";
             }
             else
             {
                 WriteToLog($"\"{line}\" not parsed");
             }
 
-            return movie;
+            return keyword;
         }
 
         private string GetTitle(Match match)
@@ -93,16 +93,6 @@ namespace IMDB_Parser.Parsers
             return GetValueFromGroup(match, "year");
         }
 
-        private string GetPeriodBegin(Match match)
-        {
-            return GetValueFromGroup(match, "periodbegin");
-        }
-
-        private string GetPeriodEnd(Match match)
-        {
-            return GetValueFromGroup(match, "periodend");
-        }
-
         private string GetEpisode(Match match)
         {
             return GetValueFromGroup(match, "episode");
@@ -111,6 +101,11 @@ namespace IMDB_Parser.Parsers
         private string GetEpisodeName(Match match)
         {
             return GetValueFromGroup(match, "episodename");
+        }
+
+        private string GetKeywordDetails(Match match)
+        {
+            return GetValueFromGroup(match, "keyword");
         }
 
         private string IsSerie(Match match)
@@ -140,11 +135,6 @@ namespace IMDB_Parser.Parsers
         private string IsVideoGame(Match match)
         {
             return (GetValueFromGroup(match, "videogame") == "VG").ToString();
-        }
-
-        private string GetExtra(Match match)
-        {
-            return GetValueFromGroup(match, "extra");
         }
     }
 }

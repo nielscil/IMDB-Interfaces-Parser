@@ -23,6 +23,9 @@ namespace IMDB_Parser.Parsers
             yield return new ActressesParser();
             yield return new MoviesParser();
             yield return new LocationParser();
+            yield return new GenreParser();
+            yield return new KeywordsParser();
+            yield return new PlotParser();
         }
 
         public static string ConvertToUTF8(string old)

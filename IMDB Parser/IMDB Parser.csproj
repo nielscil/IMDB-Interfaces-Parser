@@ -55,10 +55,13 @@
     <Compile Include="Parsers\ActorsParser.cs" />
     <Compile Include="Parsers\ActressesParser.cs" />
     <Compile Include="Parsers\BaseParser.cs" />
+    <Compile Include="Parsers\GenreParser.cs" />
     <Compile Include="Parsers\IParser.cs" />
+    <Compile Include="Parsers\KeywordsParser.cs" />
     <Compile Include="Parsers\LocationParser.cs" />
     <Compile Include="Parsers\MoviesParser.cs" />
     <Compile Include="Parsers\Parsers.cs" />
+    <Compile Include="Parsers\PlotParser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
