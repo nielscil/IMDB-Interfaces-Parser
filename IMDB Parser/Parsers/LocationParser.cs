@@ -10,8 +10,7 @@ namespace IMDB_Parser.Parsers
     class LocationParser : BaseParser
     {
 
-        //private const string _regex = @"^(?'title'.*?)\s*\(((?'year'\d{4}(\/.*)?)|(.{4}(\/.*?)?))\)\s*(?'episode'\{[^\{\}]*\})?\s*((?'location'.*)??,[ ]*)?((?'city'[^,]*)?,[ ]*)?((?'state'[^,]*)?,[ ]*)?(?'country'[^,\(]*)?(?'extra'\(.*\))?$";
-        private const string _regex = @"^(?'title'.*?)\s*\(((?'year'\d{4}(\/.*)?)|(.{4}(\/.*?)?))\)\s*(\{(?'episodename'.*?)(\(\#?(?'episode'[^\)]*)\))?\})?\s*(\((?'videomovie'V)\))?\s*(\((?'tvmovie'TV)\))?\s*(\((?'videogame'VG)\))?\s*(\{\{.*\}\})?\s*(?'locationdetails'[^\t\r\n]*)\s*(\((?'extra'.*)\))?$";
+       private const string _regex = @"^(?'title'.*)\s*\(((?'year'\d{4}(\/.*?)?)|(.{4}(\/.*?)?))\)\s*(\{(?'episodename'.*?)(\(\#?(?'episode'[^\)]{0,15})\))?\})?\s*(\((?'videomovie'V)\))?\s*(\((?'tvmovie'TV)\))?\s*(\((?'videogame'VG)\))?\s*(\{\{.*\}\})?\s*(?'locationdetails'[^\t\r\n]*)\s*(\((?'extra'.*)\))?$";
 
         public override string Name
         {
@@ -25,7 +24,7 @@ namespace IMDB_Parser.Parsers
         {
             get
             {
-                return "Title; Year; Serie; Episode; EpisodeName; VideoMovie; TVMovie; VideoGame; Location; Extra;";
+                return "Title;Year;Serie;Episode;EpisodeName;VideoMovie;TVMovie;VideoGame;Location;Extra";
             }
         }
 
@@ -78,7 +77,11 @@ namespace IMDB_Parser.Parsers
 
                 if(!string.IsNullOrEmpty(locationDetails))
                 {
-                    location = $"{GetTitle(match).Trim('"')}; {GetYear(match)}; {IsSerie(match)}; {GetEpisode(match)}; {GetEpisodeName(match)}; {IsVideoMovie(match)}; {IsTVMovie(match)}; {IsVideoGame(match)}; {locationDetails}; {GetExtra(match)};";
+                    location = $"\"{GetTitle(match)}\";{GetYear(match)};{IsSerie(match)};\"{GetEpisode(match)}\";\"{GetEpisodeName(match)}\";{IsVideoMovie(match)};{IsTVMovie(match)};{IsVideoGame(match)};\"{locationDetails}\";\"{GetExtra(match)}\"";
+                }
+                else
+                {
+                    WriteToLog($"\"{line}\" has no location details");
                 }
             }
             else
@@ -91,46 +94,12 @@ namespace IMDB_Parser.Parsers
 
         private string GetLocationDetails(Match match)
         {
-            return GetValueFromGroup(match, "locationdetails");
-            //string details = null;
-
-            //if(!string.IsNullOrEmpty(location))
-            //{
-            //    string[] data = location.Split(_seperator, StringSplitOptions.None);
-
-            //    string loc = string.Empty;
-            //    string city = string.Empty;
-            //    string state = string.Empty;
-            //    string country = string.Empty;
-
-            //    country = data[data.Length - 1];
-                
-            //    if(data.Length - 2 >= 0)
-            //    {
-            //        state = data[data.Length - 2];
-            //    }
-                
-            //    if(data.Length - 3 >= 0)
-            //    {
-            //        city = data[data.Length - 3];
-            //    }
-
-            //    int index = data.Length - 4;
-
-            //    for(int i = 0; i <= index; i++)
-            //    {
-            //        loc += data[i];
-            //    }
-
-            //    details = $"{location}; {loc}; {city}; {state}; {country}";
-            //}
-
-            //return details;
+            return GetValueFromGroup(match, "locationdetails").Replace("\"","\\\"");
         }
 
         private string GetTitle(Match match)
         {
-            return GetValueFromGroup(match, "title");
+            return GetValueFromGroup(match, "title").Trim('"');
         }
 
         private string GetYear(Match match)
@@ -140,37 +109,17 @@ namespace IMDB_Parser.Parsers
 
         private string GetEpisode(Match match)
         {
-            return GetValueFromGroup(match, "episode");
+            return GetValueFromGroup(match, "episode").Replace("\"", "\\\"");
         }
 
         private string GetEpisodeName(Match match)
         {
-            return GetValueFromGroup(match, "episodename");
+            return GetValueFromGroup(match, "episodename").Replace("\"", "\\\"");
         }
-
-        //private string GetLocation(Match match)
-        //{
-        //    return GetValueFromGroup(match, "location");
-        //}
-
-        //private string GetCity(Match match)
-        //{
-        //    return GetValueFromGroup(match, "city");
-        //}
-
-        //private string GetState(Match match)
-        //{
-        //    return GetValueFromGroup(match, "state");
-        //}
-
-        //private string GetCountry(Match match)
-        //{
-        //    return GetValueFromGroup(match, "country");
-        //}
 
         private string GetExtra(Match match)
         {
-            return GetValueFromGroup(match, "extra");
+            return GetValueFromGroup(match, "extra").Replace("\"", "\\\"");
         }
 
         private string IsSerie(Match match)
@@ -184,22 +133,22 @@ namespace IMDB_Parser.Parsers
                 value = title.Substring(0, 1) == "\"" && title.Substring(title.Length - 1) == "\"";
             }
 
-            return value.ToString();
+            return Convert.ToInt32(value).ToString();//value.ToString();
         }
 
         private string IsVideoMovie(Match match)
         {
-            return (GetValueFromGroup(match, "videomovie") == "V").ToString();
+            return Convert.ToInt32(GetValueFromGroup(match, "videomovie") == "V").ToString();
         }
 
         private string IsTVMovie(Match match)
         {
-            return (GetValueFromGroup(match, "tvmovie") == "TV").ToString();
+            return Convert.ToInt32(GetValueFromGroup(match, "tvmovie") == "TV").ToString();
         }
 
         private string IsVideoGame(Match match)
         {
-            return (GetValueFromGroup(match, "videogame") == "VG").ToString();
+            return Convert.ToInt32(GetValueFromGroup(match, "videogame") == "VG").ToString();
         }
 
     }

@@ -182,7 +182,7 @@ namespace IMDB_Parser.Parsers
                 value = group.Value;
             }
 
-            return value.Trim(' ','\t');
+            return value.Replace("\\", " ").Trim(' ','\t');
         }
 
         protected Match RegexMatch(string line, string regex)

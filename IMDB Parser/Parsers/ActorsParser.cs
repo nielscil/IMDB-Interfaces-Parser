@@ -11,7 +11,7 @@ namespace IMDB_Parser.Parsers
     public class ActorsParser : BaseParser
     {
         private const string _regexActor = @"^(?'nickname'\'.*\'[ ]?)?((?'surname'[^,\n]*), )?(?'name'.*?)[\t]{1,2}(?'title'.*)$";
-        private const string _regexTitle = @"^(?'title'.*?)\s*\(((?'year'\d{4}(\/.*)?)|(.{4}(\/.*?)?))\)\s*(\{(?'episodename'.*?)(\(\#?(?'episode'[^\)]*)\))?\})?\s*(\((?'videomovie'V)\))?\s*(\((?'tvmovie'TV)\))?\s*(\((?'videogame'VG)\))?\s*(?'character1'[^{}\[\]\(\)\<\>]*)\s*(\{{2}.*\}{2})?\s*(?'extra'\(.*\)[.]?)?\s*(\[(?'character'.*)\])?\s*(\<(?'billingposition'.*)\>)?$";
+        private const string _regexTitle = @"^(?'title'.*)\s*\(((?'year'\d{4}(\/.*?)?)|(.{4}(\/.*?)?))\)\s*(\{(?'episodename'.*?)(\(\#?(?'episode'[^\)]{0,15})\))?\})?\s*(\((?'videomovie'V)\))?\s*(\((?'tvmovie'TV)\))?\s*(\((?'videogame'VG)\))?\s*(?'character1'[^{}\[\]\(\)\<\>]*)\s*(\{{2}.*\}{2})?\s*(?'extra'\(.*\)[.]?)?\s*(\[(?'character'.*)\])?\s*(\<(?'billingposition'.*)\>)?$";
         private char[] _seperator { get; } = { '\t' };
 
         public override string Name
@@ -26,7 +26,7 @@ namespace IMDB_Parser.Parsers
         {
             get
             {
-                return "Name; Surname; Nickname; Title; Year; Character; Character Extras; BillingPosition; Serie; Episode; EpisodeName; VideoMovie; TVMovie; VideoGame;";
+                return "Name;Surname;Nickname;Role;Role Extras;BillingPosition;Title;Year;Serie;Episode;EpisodeName;VideoMovie;TVMovie;VideoGame";
             }
         }
 
@@ -89,7 +89,9 @@ namespace IMDB_Parser.Parsers
 
             if(match.Success)
             {
-                actor = $"{GetActorName(match)}; {GetActorSurname(match)}; {GetActorNickname(match)};";
+
+                actor = $"\"{GetActorName(match)}\";\"{GetActorSurname(match)}\";\"{GetActorNickname(match)}\";";
+                
             }
             else
             {
@@ -110,7 +112,9 @@ namespace IMDB_Parser.Parsers
 
             if (match.Success)
             {
-                title = $" {GetTitleTitle(match).Trim('"')}; {GetTitleYear(match)}; {GetTitleCharacter(match)}; {GetTitleCharacterExtras(match)}; {GetTitleBillingPosition(match)}; {IsSerie(match)}; {GetTitleEpisode(match)}; {GetTitleEpisodeName(match)}; {IsVideoMovie(match)}; {IsTVMovie(match)}; {IsVideoMovie(match)};";
+
+                title = $"\"{GetTitleCharacter(match)}\";\"{GetTitleCharacterExtras(match)}\";{GetTitleBillingPosition(match)};\"{GetTitleTitle(match).Trim('"')}\";{GetTitleYear(match)};{IsSerie(match)};\"{GetTitleEpisode(match)}\";\"{GetTitleEpisodeName(match)}\";{IsVideoMovie(match)};{IsTVMovie(match)};{IsVideoMovie(match)}";
+                               
             }
             else
             {
@@ -137,17 +141,17 @@ namespace IMDB_Parser.Parsers
 
         private string GetActorNickname(Match match)
         {
-            return GetValueFromGroup(match, "nickname");
+            return GetValueFromGroup(match, "nickname").Replace("\"", "\\\"");
         }
 
         private string GetActorSurname(Match match)
         {
-            return GetValueFromGroup(match, "surname");
+            return GetValueFromGroup(match, "surname").Replace("\"", "\\\"");
         }
 
         private string GetActorName(Match match)
         {
-            return GetValueFromGroup(match, "name");
+            return GetValueFromGroup(match, "name").Replace("\"", "\\\"");
         }
 
         private string GetTitleTitle(Match match)
@@ -157,16 +161,23 @@ namespace IMDB_Parser.Parsers
 
         private string GetTitleYear(Match match)
         {
-            return GetValueFromGroup(match, "year");
+            string year = GetValueFromGroup(match, "year");
+
+            if (year == "????")
+            {
+                year = string.Empty;
+            }
+
+            return year;
         }
 
         private string GetTitleCharacter(Match match)
         {
-            string character = GetValueFromGroup(match, "character");
+            string character = GetValueFromGroup(match, "character").Replace("\"", "\\\"");
 
-            if(character == string.Empty)
+            if (character == string.Empty)
             {
-                character = GetValueFromGroup(match, "character1");
+                character = GetValueFromGroup(match, "character1").Replace("\"", "\\\"");
             }
 
             return character;
@@ -174,7 +185,7 @@ namespace IMDB_Parser.Parsers
 
         private string GetTitleCharacterExtras(Match match)
         {
-            return GetValueFromGroup(match, "extra");
+            return GetValueFromGroup(match, "extra").Replace("\"", "\\\"");
         }
 
         private string GetTitleBillingPosition(Match match)
@@ -184,12 +195,12 @@ namespace IMDB_Parser.Parsers
 
         private string GetTitleEpisode(Match match)
         {
-            return GetValueFromGroup(match, "episode");
+            return GetValueFromGroup(match, "episode").Replace("\"", "\\\"");
         }
 
         private string GetTitleEpisodeName(Match match)
         {
-            return GetValueFromGroup(match, "episodename");
+            return GetValueFromGroup(match, "episodename").Replace("\"", "\\\"");
         }
 
         private string IsSerie(Match match)
@@ -203,22 +214,22 @@ namespace IMDB_Parser.Parsers
                 value = title.Substring(0, 1) == "\"" && title.Substring(title.Length - 1) == "\"";
             }
 
-            return value.ToString();
+            return Convert.ToInt32(value).ToString();
         }
 
         private string IsVideoMovie(Match match)
         {
-            return (GetValueFromGroup(match, "videomovie") == "V").ToString();
+            return Convert.ToInt32(GetValueFromGroup(match, "videomovie") == "V").ToString();
         }
 
         private string IsTVMovie(Match match)
         {
-            return (GetValueFromGroup(match, "tvmovie") == "TV").ToString();
+            return Convert.ToInt32(GetValueFromGroup(match, "tvmovie") == "TV").ToString();
         }
 
         private string IsVideoGame(Match match)
         {
-            return (GetValueFromGroup(match, "videogame") == "VG").ToString();
+            return Convert.ToInt32(GetValueFromGroup(match, "videogame") == "VG").ToString();
         }
 
     }
