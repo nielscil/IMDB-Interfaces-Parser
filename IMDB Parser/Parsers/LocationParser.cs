@@ -77,7 +77,7 @@ namespace IMDB_Parser.Parsers
 
                 if(!string.IsNullOrEmpty(locationDetails))
                 {
-                    location = $"\"{GetTitle(match)}\";{GetYear(match)};{IsSerie(match)};\"{GetEpisode(match)}\";\"{GetEpisodeName(match)}\";{IsVideoMovie(match)};{IsTVMovie(match)};{IsVideoGame(match)};\"{locationDetails}\";\"{GetExtra(match)}\"";
+                    location = $"\"{GetTitle(match).Trim('"')}\";{GetYear(match)};{IsSerie(match)};\"{GetEpisode(match)}\";\"{GetEpisodeName(match)}\";{IsVideoMovie(match)};{IsTVMovie(match)};{IsVideoGame(match)};\"{locationDetails}\";\"{GetExtra(match)}\"";
                 }
                 else
                 {
@@ -99,7 +99,7 @@ namespace IMDB_Parser.Parsers
 
         private string GetTitle(Match match)
         {
-            return GetValueFromGroup(match, "title").Trim('"');
+            return GetValueFromGroup(match, "title");
         }
 
         private string GetYear(Match match)
